@@ -111,6 +111,33 @@ describe("Command substitution with a `#` that is not a comment", () => {
     expect(result.exitCode).toBe(0);
   });
 
+  it.each([
+    [
+      "keeps an outer heredoc open across a newline in",
+      ['x=$(cat <<E; echo "$(echo a', ')"', "it's", "E", ")"],
+      "[it's\na]\n",
+    ],
+    [
+      "reads an outer and an inner heredoc in",
+      [
+        'x=$(cat <<A; echo "$(cat <<B',
+        "inner's",
+        "B",
+        ')"',
+        "outer's",
+        "A",
+        ")",
+      ],
+      "[outer's\ninner's]\n",
+    ],
+  ])("%s a nested `$(...)` in double quotes", async (_name, lines, expected) => {
+    const env = new Bash();
+    const result = await env.exec([...lines, 'echo "[$x]"'].join("\n"));
+    expect(result.stdout).toBe(expected);
+    expect(result.stderr).toBe("");
+    expect(result.exitCode).toBe(0);
+  });
+
   it("fails when the input ends inside `$(`", async () => {
     const env = new Bash();
     const result = await env.exec("x=$(echo a # )\necho after");

@@ -1365,18 +1365,19 @@ export class Lexer {
         // word (`$(`, `<(`, `>(`), so its `)` does not end the word.
         const parenInWord: boolean[] = [];
         // A `$(` inside double quotes starts a new quoting context. Each entry
-        // holds the depth at that `$(` and the case and arithmetic state to
-        // restore, together with the double quotes, at its closing `)`.
+        // holds the depth at that `$(` and the case, arithmetic and heredoc
+        // state to restore, with the double quotes, at its closing `)`.
         const quoteResume: {
           depth: number;
           caseDepth: number;
           inCasePattern: boolean;
           arithDepth: number;
+          pendingHeredocs: { delim: string; stripTabs: boolean }[];
         }[] = [];
         // Heredocs opened on the current line whose (literal) bodies must be
         // skipped without quote tracking so an apostrophe in the body is not
         // mistaken for a shell quote when finding the closing `)`.
-        const pendingHeredocs: { delim: string; stripTabs: boolean }[] = [];
+        let pendingHeredocs: { delim: string; stripTabs: boolean }[] = [];
         // Check if this is $((...)) arithmetic expansion
         // When $(( is followed by content that spans multiple lines and closes with ) ),
         // it's $( ( subshell ) ) not $(( arithmetic ))
@@ -1409,11 +1410,18 @@ export class Lexer {
             } else if (c === "$" && input[pos + 1] === "(") {
               // Leave the double quotes for the command substitution. Its
               // closing `)` restores them.
-              quoteResume.push({ depth, caseDepth, inCasePattern, arithDepth });
+              quoteResume.push({
+                depth,
+                caseDepth,
+                inCasePattern,
+                arithDepth,
+                pendingHeredocs,
+              });
               inDoubleQuote = false;
               caseDepth = 0;
               inCasePattern = false;
               arithDepth = 0;
+              pendingHeredocs = [];
             }
           } else {
             // Not in quotes
@@ -1631,6 +1639,7 @@ export class Lexer {
                     caseDepth = resume.caseDepth;
                     inCasePattern = resume.inCasePattern;
                     arithDepth = resume.arithDepth;
+                    pendingHeredocs = resume.pendingHeredocs;
                   }
                 }
               } else if (c === ";") {

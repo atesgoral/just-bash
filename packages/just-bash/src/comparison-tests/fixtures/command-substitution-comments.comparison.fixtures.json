@@ -14,6 +14,13 @@
     "exitCode": 0,
     "locked": true
   },
+  "3b39119943e30791": {
+    "command": "echo start; eval 'x=$(echo a # )'; echo end",
+    "files": {},
+    "stdout": "start\nend\n",
+    "stderr": "/bin/bash: eval: line 2: unexpected EOF while looking for matching `)'\n",
+    "exitCode": 0
+  },
   "47047eacfb9e7676": {
     "command": "set -- a b; v=1; x=$(echo $# ${v}#a $(echo b)#c $((2))#d); echo \"[$x]\"; echo after",
     "files": {},
@@ -107,5 +114,13 @@
     "stdout": "",
     "stderr": "/bin/bash: -c: line 3: unexpected EOF while looking for matching `)'\n",
     "exitCode": 2
+  },
+  "f4ab5d365c397cfe": {
+    "command": "x=$(cat <<E; echo \"$(echo a\n)\"\nit's\nE\n)\necho \"[$x]\"",
+    "files": {},
+    "stdout": "[it's\na]\n",
+    "stderr": "",
+    "exitCode": 0,
+    "locked": true
   }
 }

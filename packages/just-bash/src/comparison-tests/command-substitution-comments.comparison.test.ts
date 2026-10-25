@@ -106,6 +106,24 @@ describe("Command substitution comments - Real Bash Comparison", () => {
     await compareOutputs(env, testDir, "x=$(echo a # )\necho after");
   });
 
+  it("keeps an outer heredoc open across a newline in nested quotes", async () => {
+    const env = await setupFiles(testDir, {});
+    await compareOutputs(
+      env,
+      testDir,
+      `x=$(cat <<E; echo "$(echo a\n)"\nit's\nE\n)\necho "[$x]"`,
+    );
+  });
+
+  it("runs the next command after an unclosed $( in eval", async () => {
+    const env = await setupFiles(testDir, {});
+    await compareOutputs(
+      env,
+      testDir,
+      "echo start; eval 'x=$(echo a # )'; echo end",
+    );
+  });
+
   it("starts a comment at the start of the body and after ; | &&", async () => {
     const env = await setupFiles(testDir, {});
     await compareOutputs(

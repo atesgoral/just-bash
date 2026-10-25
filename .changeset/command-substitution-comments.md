@@ -9,3 +9,5 @@ A `#` inside a word in a `$(…)` body, as in `$(echo a-#b)`, `$(echo $#)` or `$
 A `<<<` here-string inside a multi-line `$(…)` is no longer read as a heredoc.
 
 If the input ends inside `$(`, the script now fails with `` unexpected EOF while looking for matching `)' `` and exit code 2, as in bash. Where the `$(` scan still reads a `#` as a comment that bash does not, as in `` $(echo `echo #a`) `` or `$(echo @(a)#b)`, the script now also fails with this error.
+
+`eval`, `source`, a script file and `compgen -C` now treat a lexer error, such as an unclosed quote, as a syntax error, as they already did for other parse errors. The command fails and the script goes on, as in bash. Before, a lexer error there stopped the whole script and dropped its output.
