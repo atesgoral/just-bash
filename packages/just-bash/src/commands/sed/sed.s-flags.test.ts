@@ -158,4 +158,35 @@ describe("sed s command flags", () => {
       });
     }
   });
+
+  // A script file line keeps its trailing blanks, as an -e script does.
+  describe("script files", () => {
+    const runFile = (script: string) =>
+      new Bash({
+        files: { "/test.txt": "a\nb\n", "/script.sed": script },
+      }).exec("sed -f /script.sed /test.txt");
+
+    for (const script of ["s a b \n", "s\ta\tb\t\n", "s a b \r\n"]) {
+      it(`accepts a blank delimiter at the end of ${JSON.stringify(script)}`, async () => {
+        const result = await runFile(script);
+        expect(result.stdout).toBe("b\nb\n");
+        expect(result.stderr).toBe("");
+        expect(result.exitCode).toBe(0);
+      });
+    }
+
+    it("accepts a blank delimiter at the end of a y command", async () => {
+      const result = await runFile("y a b \n");
+      expect(result.stdout).toBe("b\nb\n");
+      expect(result.stderr).toBe("");
+      expect(result.exitCode).toBe(0);
+    });
+
+    it("keeps trailing blanks in a, i and c text", async () => {
+      const result = await runFile("1i one \n1a two  \n2c three \n");
+      expect(result.stdout).toBe("one \na\ntwo  \nthree \n");
+      expect(result.stderr).toBe("");
+      expect(result.exitCode).toBe(0);
+    });
+  });
 });

@@ -25,6 +25,14 @@ describe("sed s command flags", () => {
     );
   });
 
+  it("keeps a trailing blank delimiter in a sed -f script", async () => {
+    const env = await setupFiles(testDir, {
+      "script.sed": "s a b \n",
+      "test.txt": "aaa\nb\n",
+    });
+    await compareOutputs(env, testDir, "sed -f script.sed test.txt");
+  });
+
   for (const script of [
     "sed 's/a/b/ g' test.txt",
     "sed -n 's/a/b/g p' test.txt",

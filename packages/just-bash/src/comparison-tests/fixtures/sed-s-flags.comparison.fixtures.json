@@ -99,6 +99,17 @@
     "exitCode": 0,
     "locked": true
   },
+  "ee6e79eb3ab328d2": {
+    "command": "sed -f script.sed test.txt",
+    "files": {
+      "script.sed": "s a b \n",
+      "test.txt": "aaa\nb\n"
+    },
+    "stdout": "baa\nb\n",
+    "stderr": "",
+    "exitCode": 0,
+    "locked": true
+  },
   "f19689971ce2e0ce": {
     "command": "sed 's/a/b/ 2' test.txt",
     "files": {
