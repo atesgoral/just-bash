@@ -69,6 +69,16 @@
     "exitCode": 0,
     "locked": true
   },
+  "a8dd7f6849879246": {
+    "command": "sed 's/a/b/;Tx;s/a/c/5;Ty;s/$/ -/;b;:x;s/$/ x/;b;:y;s/$/ y/' input.txt",
+    "files": {
+      "input.txt": "x\na\naaa\naaaa\nabc\n\n"
+    },
+    "stdout": "x x\nb y\nbaa y\nbaaa y\nbbc y\n x\n",
+    "stderr": "",
+    "exitCode": 0,
+    "locked": true
+  },
   "b22dd765a2eb1fd0": {
     "command": "sed -n 's/a/a/2p' input.txt",
     "files": {

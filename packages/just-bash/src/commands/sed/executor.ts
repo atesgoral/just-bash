@@ -1093,6 +1093,9 @@ export function executeCommands(
           }
           // Branch without label means jump to end
           break;
+        } else {
+          // T resets the flag when it does not branch, as GNU sed does
+          state.substitutionMade = false;
         }
       }
       i++;

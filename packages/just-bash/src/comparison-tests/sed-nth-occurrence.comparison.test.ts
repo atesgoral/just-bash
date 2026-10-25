@@ -28,6 +28,7 @@ describe("sed s with a number", () => {
     "sed -n 's/a/a/2p' input.txt",
     "sed 's/a/b/2;tx;s/$/ -/;b;:x;s/$/ +/' input.txt",
     "sed 's/a/b/3;Tx;s/$/ +/;b;:x;s/$/ -/' input.txt",
+    "sed 's/a/b/;Tx;s/a/c/5;Ty;s/$/ -/;b;:x;s/$/ x/;b;:y;s/$/ y/' input.txt",
   ]) {
     it(script, async () => {
       const env = await setupFiles(testDir, {

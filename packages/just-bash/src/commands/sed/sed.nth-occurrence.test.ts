@@ -149,4 +149,14 @@ describe("sed s with a number and the t and T commands", () => {
     expect(result.stderr).toBe("");
     expect(result.exitCode).toBe(0);
   });
+
+  it("T clears the flag, so a later T sees that there is no Nth match", async () => {
+    const result = await run(
+      "'s/a/b/;Tx;s/a/c/5;Ty;s/$/ -/;b;:x;s/$/ x/;b;:y;s/$/ y/'",
+      "aaa\nz\n",
+    );
+    expect(result.stdout).toBe("baa y\nz x\n");
+    expect(result.stderr).toBe("");
+    expect(result.exitCode).toBe(0);
+  });
 });
