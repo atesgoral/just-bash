@@ -54,10 +54,6 @@ const SKIP_TESTS: Map<string, string> = new Map<string, string>([
   // def call-by-name semantics
   // ============================================================
   [
-    "jq.test:def f(x): x | x; f([.], . + [42])",
-    "def: requires call-by-name semantics for filter parameters",
-  ],
-  [
     "jq.test:def inc(x): x |= .+1; inc(.[].a)",
     "def: update operator on parameter requires call-by-name",
   ],

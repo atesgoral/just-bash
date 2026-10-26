@@ -2066,59 +2066,36 @@ function evalBuiltin(
     // IN, INDEX, JOIN handled by evalSqlBuiltin
 
     default: {
-      // Check for user-defined function by name/arity
       const funcKey = `${name}/${args.length}`;
-      const userFunc = ctx.funcs?.get(funcKey) as
-        | {
-            params: string[];
-            body: AstNode;
-            closure?: Map<string, unknown>;
-            vars?: Map<string, QueryValue>;
-          }
-        | undefined;
+      const userFunc = ctx.funcs?.get(funcKey) as UserFunction | undefined;
       if (userFunc) {
-        // User-defined function: bind parameters
-        // In jq, parameters are "filters" that can produce multiple values.
-        // We evaluate them in the calling context and store as literal values.
-        //
-        // Use the function's closure for lexical scoping, not the current context's funcs.
-        // This ensures that functions capture the scope at definition time.
         const baseFuncs = (userFunc.closure ?? ctx.funcs ?? new Map()) as Map<
           string,
-          { params: string[]; body: AstNode; closure?: Map<string, unknown> }
+          UserFunction
         >;
-        const newFuncs = new Map(baseFuncs);
-        // Also add the current function itself so recursion works
-        newFuncs.set(funcKey, userFunc);
+        const newFuncs = userFunc.param ? baseFuncs : new Map(baseFuncs);
+        if (!userFunc.param) newFuncs.set(funcKey, userFunc);
         for (let i = 0; i < userFunc.params.length; i++) {
-          const paramName = userFunc.params[i];
           const argExpr = args[i];
-          if (argExpr) {
-            // Evaluate the argument in the calling context, then store as a literal
-            // This implements call-by-value semantics
-            const argVals = evaluate(value, argExpr, ctx);
-            // Store as a function that returns all the values
-            let bodyNode: AstNode;
-            if (argVals.length === 0) {
-              bodyNode = { type: "Call", name: "empty", args: [] };
-            } else if (argVals.length === 1) {
-              bodyNode = { type: "Literal", value: argVals[0] };
-            } else {
-              // Multiple values - build a right-associative Comma chain
-              bodyNode = {
-                type: "Literal",
-                value: argVals[argVals.length - 1],
-              };
-              for (let j = argVals.length - 2; j >= 0; j--) {
-                bodyNode = {
-                  type: "Comma",
-                  left: { type: "Literal", value: argVals[j] },
-                  right: bodyNode,
-                };
-              }
-            }
-            newFuncs.set(`${paramName}/0`, { params: [], body: bodyNode });
-          }
+          if (!argExpr) continue;
+          const passed =
+            argExpr.type === "Call" && argExpr.args.length === 0
+              ? (ctx.funcs?.get(`${argExpr.name}/0`) as
+                  | UserFunction
+                  | undefined)
+              : undefined;
+          newFuncs.set(
+            `${userFunc.params[i]}/0`,
+            passed?.param
+              ? passed
+              : {
+                  params: [],
+                  body: argExpr,
+                  closure: ctx.funcs ?? new Map(),
+                  vars: ctx.vars,
+                  param: true,
+                },
+          );
         }
         const newCtx: EvalContext = {
           ...ctx,
@@ -2130,6 +2107,14 @@ function evalBuiltin(
       throw new Error(`Unknown function: ${name}`);
     }
   }
+}
+
+interface UserFunction {
+  params: string[];
+  body: AstNode;
+  closure?: Map<string, unknown>;
+  vars?: Map<string, QueryValue>;
+  param?: boolean;
 }
 
 function collectPaths(
