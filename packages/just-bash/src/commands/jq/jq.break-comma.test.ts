@@ -123,6 +123,22 @@ describe("jq break in a comma", () => {
     expect(result.exitCode).toBe(0);
   });
 
+  // A break in an argument leaves the array or reduce in the function body,
+  // so the function gives no output.
+  it.each([
+    ["def f(g): [g]; [label $l | f(1,2,break $l)]", "[]\n"],
+    [
+      "def f(g): reduce g as $x (0; . + $x); [label $l | f(1, 2, break $l)]",
+      "[]\n",
+    ],
+    ["def m(f): [.[] | f]; [label $l | [1,2] | m(., break $l)]", "[]\n"],
+  ])("gives no output when a break leaves the function body: %s", async (filter, stdout) => {
+    const result = await runJq(filter);
+    expect(result.stdout).toBe(stdout);
+    expect(result.stderr).toBe("");
+    expect(result.exitCode).toBe(0);
+  });
+
   it("keeps limit and first unchanged", async () => {
     const result = await runJq(
       "[limit(0; 1, 2)], [first(empty)], [first(range(3))], [limit(2; 1, 2, 3)]",
