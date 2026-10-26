@@ -115,14 +115,6 @@ const SKIP_TESTS: Map<string, string> = new Map<string, string>([
   ["jq.test:delpaths([[-200]])", "delpaths with large negative index"],
 
   // ============================================================
-  // label with keyword variable names
-  // ============================================================
-  [
-    "jq.test:[ label $if | range(10) | ., (select(. == 5) | break $if), . ]",
-    "label with keyword name $if",
-  ],
-
-  // ============================================================
   // fromjson edge cases
   // ============================================================
   [
@@ -491,7 +483,6 @@ const SKIP_PATTERNS: Array<{ pattern: RegExp; reason: string }> = [
   { pattern: /\$foreach.*\$and.*\$or/, reason: "Keywords as variables" },
   { pattern: /\{ \$x, as,/, reason: "Complex object shorthand" },
   { pattern: /\. as \{as:/, reason: "Complex destructuring" },
-  { pattern: /label \$if/, reason: "label with keyword variable name" },
 
   // fromjson edge cases
   { pattern: /\.\[\] \| try \(fromjson/, reason: "fromjson with iteration" },
